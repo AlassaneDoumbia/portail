@@ -1,0 +1,47 @@
+version: '3.3'
+services:
+  sonatel_api:
+    build: .
+    command: python /src/manage.py runserver 0.0.0.0:8088
+    container_name: api.sonatel.com
+    restart: always
+    volumes:
+      - .:/src
+    env_file:
+      - portail/.env
+    ports:
+      - "8088:8088"
+    depends_on:
+      - sonatel_db
+    networks:
+      - sonatel-network
+  sonatel_db:
+    restart: always
+    image: postgres:12.0-alpine
+    container_name: db.sonatel.com
+    ports:
+      - "5438:5438"
+    env_file:
+      - portail/.env
+    volumes:
+      - postgres_sonatel_data:/var/lib/postgresql/data/
+    networks:
+      - sonatel-network
+  sonatel_pgadmin:
+    restart: always
+    image: dpage/pgadmin4
+    container_name: pgadmin.sonatel.com
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@sonatel.com"
+      PGADMIN_DEFAULT_PASSWORD: "@dmin123"
+    ports:
+      - "8089:8089"
+    depends_on:
+      - sonatel_db
+    networks:
+      - sonatel-network
+networks:
+  sonatel-network:
+    driver: bridge
+volumes:
+  postgres_sonatel_data: # Define seperate volume for Postgres data
